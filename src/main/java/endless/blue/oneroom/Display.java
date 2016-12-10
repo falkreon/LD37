@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 
@@ -61,7 +62,9 @@ public class Display extends JFrame {
 			}
 			
 			Graphics2D bufGraphics = root.buf.createGraphics();
+			bufGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			screen.onPaint(bufGraphics);
+			bufGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			root.drawParticles(bufGraphics);
 			bufGraphics.dispose();
 			
@@ -86,6 +89,7 @@ public class Display extends JFrame {
 			int left = (this.getWidth()-targetWidth)/2;
 			int top = (this.getHeight()-targetHeight)/2;
 			
+			((Graphics2D)g).setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			g.drawImage(root.buf, left,top,targetWidth,targetHeight,this);
 			
 			g.setColor(Color.BLACK);

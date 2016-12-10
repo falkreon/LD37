@@ -29,4 +29,37 @@ public class Mob {
 			this.x -= Room.PIXEL;
 		}
 	}
+	
+	public void nudgeRight(Room r) {
+		if (this.x==(int)this.x) {
+			BlockType type = r.getTile((int)x+1, (int)y);
+			if (type==BlockType.WALKABLE) {
+				this.x += Room.PIXEL;
+			}
+		} else {
+			this.x += Room.PIXEL;
+		}
+	}
+	
+	public void nudgeUp(Room r) {
+		if (this.y==(int)this.y) {
+			BlockType type = r.getTile((int)x, (int)y-1);
+			if (type==BlockType.WALKABLE) {
+				this.y -= Room.PIXEL;
+			}
+		} else {
+			this.y -= Room.PIXEL;
+		}
+	}
+	
+	public void nudgeDown(Room r) {
+		if (this.y==(int)this.y) {
+			BlockType type = r.getTile((int)x, (int)y+1);
+			if (type==BlockType.WALKABLE) {
+				this.y += Room.PIXEL;
+			}
+		} else {
+			this.y += Room.PIXEL;
+		}
+	}
 }

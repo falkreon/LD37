@@ -3,12 +3,17 @@ package endless.blue.oneroom;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.JButton;
 
 public class FieldScreen implements Screen {
+	
+	private Clip music;
 	
 	private BufferedImage lightMap = new BufferedImage(Room.WIDTH, Room.HEIGHT, BufferedImage.TYPE_INT_ARGB);
 	
@@ -62,6 +67,10 @@ public class FieldScreen implements Screen {
 		//curRoom.addLight(new Light());
 		
 		relight();
+		
+		music = ResourceBroker.loadSound("sound/3.mp3");
+		music.loop(Clip.LOOP_CONTINUOUSLY);
+		if (music!=null) music.start();
 	}
 
 	@Override
@@ -82,7 +91,9 @@ public class FieldScreen implements Screen {
 		
 		//g.drawImage(blockImage, 0, 16, observer);
 		robot.paint(g);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g.drawImage(lightMap, 0, 0, Room.WIDTH*16, Room.HEIGHT*16, Display.OBSERVER);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 	}
 
 	@Override
@@ -92,35 +103,43 @@ public class FieldScreen implements Screen {
 			//robot.x -= 1/16f;
 			robot.nudgeLeft(curRoom);
 			
-			if (Math.random()*1 < 1) {
-				spawnMobSmoke(robot,2);
-			}
+			//if (Math.random()*1 < 1) {
+			//	spawnMobSmoke(robot,2);
+			//}
 		}
 		if (Keyboard.isPressed("right")) {
 			robot.im = robotRight;
-			robot.x += 1/16f;
+			robot.nudgeRight(curRoom);
+			//robot.x += 1/16f;
 			
-			if (Math.random()*1 < 1) {
-				spawnMobSmoke(robot,0);
-			}
+			//if (Math.random()*1 < 1) {
+			//	spawnMobSmoke(robot,0);
+			//}
 		}
 		
 		if (Keyboard.isPressed("up")) {
 			robot.im = robotLeft;
-			robot.y -= 1/16f;
+			//robot.y -= 1/16f;
+			robot.nudgeUp(curRoom);
 			
-			if (Math.random()*1 < 1) {
-				spawnMobSmoke(robot,1);
-			}
+			//if (Math.random()*1 < 1) {
+			//	spawnMobSmoke(robot,1);
+			//}
 		}
 		
 		if (Keyboard.isPressed("down")) {
 			robot.im = robotRight;
-			robot.y += 1/16f;
+			//robot.y += 1/16f;
+			robot.nudgeDown(curRoom);
 			
-			if (Math.random()*1 < 1) {
-				spawnMobSmoke(robot,1);
-			}
+			//if (Math.random()*1 < 1) {
+			//	spawnMobSmoke(robot,1);
+			//}
+		}
+		
+		if (Keyboard.isPressed("action")) {
+			//Attack!
+			spawnMobSmoke(robot,1);
 		}
 	}
 
@@ -202,8 +221,8 @@ public class FieldScreen implements Screen {
 		float xstep = (x2-x1) / steps;
 		float ystep = (y2-y1) / steps;
 		
-		float x = x1;
-		float y = y1;
+		float x = x1+xstep;
+		float y = y1+ystep;
 		
 		for(int i=0; i<steps; i++) {
 			BlockType btype = curRoom.getTile((int)x, (int)y);

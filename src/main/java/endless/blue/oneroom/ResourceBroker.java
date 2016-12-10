@@ -7,6 +7,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
+import javazoom.spi.mpeg.sampled.convert.DecodedMpegAudioInputStream;
+import javazoom.spi.mpeg.sampled.file.MpegAudioFileReader;
 
 public class ResourceBroker {
 
@@ -19,6 +25,29 @@ public class ResourceBroker {
 		} catch (Exception ex) {
 			System.out.println("Cannot get file "+imageName);
 			return new BufferedImage(1,1,BufferedImage.TYPE_INT_ARGB);
+		}
+	}
+	
+	public static Clip loadSound(String imageName) {
+		MpegAudioFileReader reader = new MpegAudioFileReader();
+		
+		
+		
+		try {
+			Clip result = AudioSystem.getClip();
+			
+			AudioInputStream in = reader.getAudioInputStream(new File(imageName));
+			DecodedMpegAudioInputStream dec = new DecodedMpegAudioInputStream(result.getFormat(), in);
+			
+			
+			
+			
+			//AudioInputStream in = AudioSystem.getAudioInputStream(new File(imageName));
+			result.open(dec);
+			return result;
+		} catch (Exception ex) {
+			System.out.println("Couldn't open sound "+imageName+": "+ex.toString());
+			return null;
 		}
 	}
 	
