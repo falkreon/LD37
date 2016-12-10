@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import javax.swing.JButton;
 
 public class FieldScreen implements Screen {
-	private long lastRenderStart;
-	private static final long targetRenderTicks = 10L;
 	
 	private BufferedImage blockImage;
 	private BufferedImage robotRight;
@@ -50,21 +48,61 @@ public class FieldScreen implements Screen {
 
 	@Override
 	public void onStep() {
-		long renderStart = System.currentTimeMillis();
-		long renderTicks = renderStart-lastRenderStart;
-		if (renderTicks < targetRenderTicks ) return;
-		lastRenderStart = renderStart;
-		
 		if (Keyboard.isPressed("left")) {
 			robot.im = robotLeft;
 			robot.x -= 1/16f;
+			
+			if (Math.random()*4 < 1) {
+				spawnMobParticle(robot);
+				/*Display.addParticle(new Particle(
+						robot.x*16, robot.y*16,
+						(float)(Math.random()*1.0f - 0.5f), (float)(Math.random()*1.0f - 0.5f) - 3f,
+						0f, 0.05f,
+						blockImage
+						));*/
+			}
 		}
 		if (Keyboard.isPressed("right")) {
 			robot.im = robotRight;
 			robot.x += 1/16f;
+			
+			if (Math.random()*4 < 1) {
+				spawnMobParticle(robot);
+				/*Display.addParticle(new Particle(
+						robot.x*16, robot.y*16,
+						(float)(Math.random()*1.0f - 0.5f), (float)(Math.random()*1.0f - 0.5f) - 3f,
+						0f, 0.05f,
+						blockImage
+						));*/
+			}
+		}
+		
+		if (Keyboard.isPressed("up")) {
+			robot.im = robotLeft;
+			robot.y -= 1/16f;
+			
+			if (Math.random()*4 < 1) {
+				spawnMobParticle(robot);
+			}
+		}
+		
+		if (Keyboard.isPressed("down")) {
+			robot.im = robotRight;
+			robot.y += 1/16f;
+			
+			if (Math.random()*4 < 1) {
+				spawnMobParticle(robot);
+			}
 		}
 	}
 
-	
+	public void spawnMobParticle(Mob m) {
+		Display.addParticle(new Particle(
+				m.x*16, m.y*16,
+				(float)(Math.random()*1.0f - 0.5f), (float)(Math.random()*1.0f - 0.5f) - 3f,
+				0f, 0.05f,
+				blockImage
+				));
+	}
 	
 }
