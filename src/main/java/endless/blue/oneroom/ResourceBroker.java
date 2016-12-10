@@ -12,9 +12,8 @@ public class ResourceBroker {
 
 	protected static Component observer = new javax.swing.JButton("WHY JAVA, WHY?");
 
-	public static Image loadImage(String imageName) {
+	public static BufferedImage loadImage(String imageName) {
 		try {
-			File f = new File(imageName);
 			BufferedImage im = ImageIO.read(new File(imageName));
 			return im;
 		} catch (Exception ex) {
@@ -23,7 +22,7 @@ public class ResourceBroker {
 		}
 	}
 	
-	public static Image getFlipped(Image im) {
+	public static BufferedImage getFlipped(Image im) {
 		BufferedImage ret = new BufferedImage(im.getWidth(observer),im.getHeight(observer),BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics g = ret.getGraphics();
 		g.drawImage(im,im.getWidth(observer),0,-im.getWidth(observer),im.getHeight(observer),observer);

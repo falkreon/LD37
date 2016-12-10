@@ -9,7 +9,7 @@ public class OneRoom {
 		s.onActivate();
 		
 		
-		Display display = new Display("One Room Draft");
+		Display display = new Display("The Chinese Room");
 		display.setVisible(true);
 		//display.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		Display.screen = s;
