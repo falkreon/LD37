@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 public class Room {
 	public static final float PIXEL = 1/16f;
 	private static final BufferedImage EMPTY_TILE = new BufferedImage(16,16,BufferedImage.TYPE_INT_ARGB);
+	private ArrayList<Light> lights = new ArrayList<>();
 	
 	public static final int WIDTH = 40;
 	public static final int HEIGHT = 22;
@@ -53,5 +54,15 @@ public class Room {
 		if (x<0 || x>=WIDTH || y<0 || y>=HEIGHT) return;
 		tileIdentity[WIDTH*y+x] = id;
 		tileImage[WIDTH*y+x] = image;
+	}
+
+	public void clearLights() { lights.clear(); }
+	
+	public void addLight(Light light) {
+		lights.add(light);
+	}
+	
+	public Iterable<Light> lights() {
+		return lights;
 	}
 }

@@ -12,4 +12,11 @@ public class Light {
 		intensity = 0.6f;
 		radius = 10;
 	}
+	
+	public Light(int x, int y, float radius) {
+		this.x = x;
+		this.y = y;
+		this.intensity = 0.6f;
+		this.radius = radius;
+	}
 }

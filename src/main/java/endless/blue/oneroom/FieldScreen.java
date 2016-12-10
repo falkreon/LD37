@@ -20,7 +20,7 @@ public class FieldScreen implements Screen {
 	
 	private BufferedImage[] particles = null;
 	
-	private ArrayList<Light> lights = new ArrayList<>();
+	
 	private ArrayList<Mob> mobs = new ArrayList<>();
 	
 	private Mob robot = new Mob();
@@ -35,6 +35,9 @@ public class FieldScreen implements Screen {
 		robotLeft = ResourceBroker.getFlipped(robotRight);
 		robot.im = robotRight;
 		
+		curRoom = RoomTemplates.constructFromTemplate(RoomTemplates.test1);
+		
+		/*
 		curRoom.clearTiles();
 		curRoom.addTile(blockImage);
 		curRoom.addTile(ResourceBroker.loadImage("image/floorTile.png"));
@@ -53,10 +56,10 @@ public class FieldScreen implements Screen {
 		curRoom.setBlock(12, 10, BlockType.OPAQUE_WALL, 3);
 		curRoom.setBlock(13, 9, BlockType.OPAQUE_WALL, 3);
 		curRoom.setBlock(14, 8, BlockType.OPAQUE_WALL, 3);
-		
+		*/
 		particles = ResourceBroker.diceImage(ResourceBroker.loadImage("image/particles.png"), 8, 8);
 		
-		lights.add(new Light());
+		//curRoom.addLight(new Light());
 		
 		relight();
 	}
@@ -165,7 +168,7 @@ public class FieldScreen implements Screen {
 		}
 		
 		eachLight:
-		for(Light light : lights) {
+		for(Light light : curRoom.lights()) {
 			int r = (int)Math.ceil(light.radius);
 			int x1 = light.x - r; if (x1<0) x1=0;
 			int y1 = light.y - r; if (y1<0) y1=0;
