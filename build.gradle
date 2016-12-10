@@ -4,7 +4,6 @@ repositories {
     jcenter();
 }
 
-// In this section you declare the dependencies for your production and test code
 dependencies {
 	compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1';
 	compile group: 'com.googlecode.soundlibs', name: 'mp3spi', version: '1.9.5-1';
