@@ -20,7 +20,7 @@ public class Display extends JFrame {
 	private long lastRenderStart;
 	private static final long targetRenderTicks = 10L;
 	
-	private static Particle[] particles = new Particle[700];
+	private static Particle[] particles = new Particle[900];
 	private static int maxParticle = 0; //Maximum particle index.
 	
 	public Display(String title) {
@@ -93,9 +93,9 @@ public class Display extends JFrame {
 			g.drawImage(root.buf, left,top,targetWidth,targetHeight,this);
 			
 			g.setColor(Color.BLACK);
-			g.drawString("Particles: "+root.maxParticle, 4, 16);
+			g.drawString("Particles: "+root.maxParticle, 10, 16);
 			g.setColor(Color.WHITE);
-			g.drawString("Particles: "+root.maxParticle, 5, 17);
+			g.drawString("Particles: "+root.maxParticle, 11, 17);
 			
 			this.repaint(10);
 		}
@@ -116,6 +116,11 @@ public class Display extends JFrame {
 				continue;
 			}
 			
+			if (cur.x<0 || cur.y<0 || cur.x>640 || cur.y>360) {
+				particles[i] = null;
+				continue;
+			}
+			
 			//calculate trajectory
 			cur.vx += cur.vvx;
 			cur.x += cur.vx;
@@ -128,12 +133,31 @@ public class Display extends JFrame {
 				if (particles[i-1]==null) {
 					particles[i-1] = particles[i];
 					particles[i] = null;
-					//if (i==maxParticle-1) maxParticle--; //optional
+					if (i==maxParticle-1) maxParticle--; //optional
 				}
 			}
 			
 			
 		}
+		
+		//non-physics compaction phase
+		for(int i=0; i<maxParticle; i++) {
+			if (i==maxParticle-1 && particles[i]==null) maxParticle--;
+			
+			Particle cur = particles[i];
+			
+			if (i>0) {
+				if (particles[i-1]==null) {
+					particles[i-1] = particles[i];
+					particles[i] = null;
+					if (i==maxParticle-1 && particles[i]==null) maxParticle--;
+				}
+			}
+		}
+	}
+	
+	public static int numParticles() {
+		return maxParticle;
 	}
 	
 	public void drawParticles(Graphics2D g) {

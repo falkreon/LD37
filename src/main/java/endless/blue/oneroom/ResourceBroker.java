@@ -28,25 +28,32 @@ public class ResourceBroker {
 		}
 	}
 	
-	public static Clip loadSound(String imageName) {
+	public static Clip loadMusic(String imageName) {
 		MpegAudioFileReader reader = new MpegAudioFileReader();
-		
-		
-		
+
 		try {
 			Clip result = AudioSystem.getClip();
 			
 			AudioInputStream in = reader.getAudioInputStream(new File(imageName));
 			DecodedMpegAudioInputStream dec = new DecodedMpegAudioInputStream(result.getFormat(), in);
-			
-			
-			
-			
-			//AudioInputStream in = AudioSystem.getAudioInputStream(new File(imageName));
 			result.open(dec);
 			return result;
 		} catch (Exception ex) {
 			System.out.println("Couldn't open sound "+imageName+": "+ex.toString());
+			return null;
+		}
+	}
+	
+	public static Clip loadSound(String soundName) {
+		try {
+			Clip result = AudioSystem.getClip();
+			
+			AudioInputStream in = AudioSystem.getAudioInputStream(new File(soundName));
+			result.open(in);
+			
+			return result;
+		} catch (Exception ex) {
+			System.out.println("Couldn't open sound "+soundName+": "+ex.toString());
 			return null;
 		}
 	}

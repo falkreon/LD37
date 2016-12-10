@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Random;
 
 import javax.sound.sampled.Clip;
 
@@ -18,6 +19,13 @@ public class FieldScreen implements Screen {
 	private BufferedImage robotLeft;
 	private BufferedImage robotNorth;
 	private BufferedImage robotSouth;
+	private Clip robotHurt;
+	
+	private BufferedImage roomba;
+	private Clip roombaHurt;
+	
+	private BufferedImage healthpack;
+	private Clip healthpackCollect;
 	
 	private Room curRoom = new Room();
 	
@@ -25,10 +33,15 @@ public class FieldScreen implements Screen {
 	
 	private ArrayList<Mob> mobs = new ArrayList<>();
 	
+	private boolean asplode = false;
+	private int asplodeTimer = 0;
+	
 	private Mob robot = new Mob();
 	Light robotLight = new Light((int)robot.x,(int)robot.y,3);
 	
 	Color bg = new Color(100,100,200);
+	
+	private int roomThreshold = 10;
 	
 	@Override
 	public void onActivate() {
@@ -36,21 +49,35 @@ public class FieldScreen implements Screen {
 		robotLeft = ResourceBroker.getFlipped(robotRight);
 		robotNorth = ResourceBroker.loadImage("image/robot_north.png");
 		robotSouth = ResourceBroker.loadImage("image/robot_south.png");
+		roomba = ResourceBroker.loadImage("image/roomba.png");
 		robot.im = robotRight;
+		
+		healthpack = ResourceBroker.loadImage("image/healthpack.png");
+		healthpackCollect = ResourceBroker.loadSound("sound/collect_healthpack.wav");
+		
 		
 		curRoom = RoomTemplates.constructFromTemplate(RoomTemplates.test1);
 		
 		particles = ResourceBroker.diceImage(ResourceBroker.loadImage("image/particles.png"), 8, 8);
 		
+		roombaHurt = ResourceBroker.loadSound("sound/hurt_roomba.wav");
+		robotHurt = ResourceBroker.loadSound("sound/hurt_robot.wav");
+		robot.attackSound = ResourceBroker.loadSound("sound/attack_robot.wav");
+		
 		robotLight.radius = 8;
 		curRoom.addLight(robotLight);
 		mobs.add(robot);
+		for(int i=0; i<4; i++) {
+			mobs.add(new Enemy(roomba, roombaHurt));
+		}
 		
 		relight();
 		
-		music = ResourceBroker.loadSound("sound/3.mp3");
+		music = ResourceBroker.loadMusic("sound/3.mp3");
 		music.loop(Clip.LOOP_CONTINUOUSLY);
 		if (music!=null) music.start();
+		
+		robot.hurtSound = robotHurt;
 	}
 
 	@Override
@@ -70,42 +97,56 @@ public class FieldScreen implements Screen {
 		}
 		
 		//g.drawImage(blockImage, 0, 16, observer);
-		robot.paint(g);
+		for(Mob m : mobs) {
+			m.paint(g);
+		}
+		//robot.paint(g);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		g.drawImage(lightMap, 0, 0, Room.WIDTH*16, Room.HEIGHT*16, Display.OBSERVER);
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+		
+		g.setColor(Color.WHITE);
+		g.drawRect(1, 1, 41, 5);
+		g.setColor(Color.RED);
+		g.fillRect(2, 2, (int)robot.health*2, 4);
+		
+		g.setColor(Color.WHITE);
+		g.drawString("Particles: "+Display.numParticles(), 43, 16);
 	}
 
 	private int lightStep = 0;
 	
 	@Override
 	public void onStep() {
-		if (Keyboard.isPressed("left")) {
-			robot.im = robotLeft;
-			robot.facing = Cardinal.WEST;
-			robot.nudgeLeft(curRoom);
-		}
-		if (Keyboard.isPressed("right")) {
-			robot.im = robotRight;
-			robot.facing = Cardinal.EAST;
-			robot.nudgeRight(curRoom);
-		}
-		
-		if (Keyboard.isPressed("up")) {
-			robot.im = robotNorth;
-			robot.facing = Cardinal.NORTH;
-			robot.nudgeUp(curRoom);
-		}
-		
-		if (Keyboard.isPressed("down")) {
-			robot.im = robotSouth;
-			robot.facing = Cardinal.SOUTH;
-			robot.nudgeDown(curRoom);
-		}
-		
-		if (Keyboard.isPressed("action")) {
-			//Attack!
-			spawnMobSmoke(robot,1);
+		if (robot.health()>0) {
+			if (Keyboard.isPressed("left")) {
+				robot.im = robotLeft;
+				robot.facing = Cardinal.WEST;
+				robot.nudgeLeft(curRoom);
+			}
+			if (Keyboard.isPressed("right")) {
+				robot.im = robotRight;
+				robot.facing = Cardinal.EAST;
+				robot.nudgeRight(curRoom);
+			}
+			
+			if (Keyboard.isPressed("up")) {
+				robot.im = robotNorth;
+				robot.facing = Cardinal.NORTH;
+				robot.nudgeUp(curRoom);
+			}
+			
+			if (Keyboard.isPressed("down")) {
+				robot.im = robotSouth;
+				robot.facing = Cardinal.SOUTH;
+				robot.nudgeDown(curRoom);
+			}
+			
+			if (Keyboard.isPressed("action")) {
+				//Attack!
+				spawnMobAttack(robot,1, 2.0f, 0.4f, 16);
+				robot.melee(mobs);
+			}
 		}
 		
 		lightStep--;
@@ -115,8 +156,51 @@ public class FieldScreen implements Screen {
 			relight();
 			lightStep = 5;
 		}
+		
+		ArrayList<Mob> toRemove = new ArrayList<>();
+		for(Mob m : mobs) {
+			m.physicsTick(curRoom, robot);
+			
+			if (m==robot) continue;
+			if (m.health()<=0) {
+				for(int i=0; i<20; i++) {
+					m.facing = Cardinal.WEST;
+					spawnMobAttack(m,0,2,6.0f,20);
+					m.facing = Cardinal.EAST;
+					spawnMobAttack(m,0,2,6.0f,20);
+				}
+				toRemove.add(m);
+			}	
+		}
+		for(Mob m : toRemove) {
+			if ((int)(Math.random()*10) == 0) spawnHealthpack(m); //10% spawn health back
+		}
+		mobs.removeAll(toRemove);
+		
+		if (robot.health()==0) {
+			if (asplodeTimer>0) asplodeTimer--;
+			else {
+				//asplode = true;
+				mobs.remove(robot);
+				for(int i=0; i<20; i++) {
+					robot.facing = Cardinal.WEST;
+					spawnMobAttack(robot,2,2,6.0f,20);
+					robot.facing = Cardinal.EAST;
+					spawnMobAttack(robot,2,2,6.0f,20);
+				}
+				asplodeTimer = 20;
+			}
+		}
+		
+		if (mobs.size()<roomThreshold) {
+			if ((int)(Math.random()*300) == 0) {
+				mobs.add(new Enemy(roomba, roombaHurt));
+			}
+		}
 	}
 
+	private Random particleRandom = new Random();
+	
 	public void spawnMobSmoke(Mob m, int kind) {
 		int particle = (int)(Math.random()*4) + kind*4;
 		
@@ -126,6 +210,25 @@ public class FieldScreen implements Screen {
 				0f, 0.05f,
 				particles[particle]
 				));
+	}
+	
+	public void spawnMobAttack(Mob m, int kind, float speed, float spread, int fuse) {
+		int particle = (int)(Math.random()*4) + kind*4;
+		
+		float baseVX = m.facing.xofs()*speed;
+		float baseVY = m.facing.yofs()*speed;
+		
+		baseVX += particleRandom.nextGaussian()*spread;
+		baseVY += particleRandom.nextGaussian()*spread;
+		
+		Particle result = new Particle(
+				m.x*16 + 8, m.y*16 + 2,
+				baseVX, baseVY,
+				0f, 0f,
+				particles[particle]
+				);
+		result.fuse = fuse;
+		Display.addParticle(result);
 	}
 	
 	public int shadowTexel(int level) {
@@ -211,4 +314,10 @@ public class FieldScreen implements Screen {
 		return (float)Math.sqrt(xdist*xdist + ydist*ydist);
 	}
 	
+	public void spawnHealthpack(Mob m) {
+		HealthPack pack = new HealthPack(healthpack, healthpackCollect);
+		pack.x = m.x;
+		pack.y = m.y;
+		mobs.add(pack);
+	}
 }
