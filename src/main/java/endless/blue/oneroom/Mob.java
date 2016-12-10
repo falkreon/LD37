@@ -9,6 +9,7 @@ public class Mob {
 	public float x = 1;
 	public float y = 1;
 	public BufferedImage im;
+	public Cardinal facing;
 	
 	public void paint(Graphics2D g) {
 		if (im==null) return;

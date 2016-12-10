@@ -2,14 +2,11 @@ package endless.blue.oneroom;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.swing.JButton;
 
 public class FieldScreen implements Screen {
 	
@@ -17,54 +14,37 @@ public class FieldScreen implements Screen {
 	
 	private BufferedImage lightMap = new BufferedImage(Room.WIDTH, Room.HEIGHT, BufferedImage.TYPE_INT_ARGB);
 	
-	private BufferedImage blockImage;
 	private BufferedImage robotRight;
 	private BufferedImage robotLeft;
+	private BufferedImage robotNorth;
+	private BufferedImage robotSouth;
 	
 	private Room curRoom = new Room();
 	
 	private BufferedImage[] particles = null;
 	
-	
 	private ArrayList<Mob> mobs = new ArrayList<>();
 	
 	private Mob robot = new Mob();
+	Light robotLight = new Light((int)robot.x,(int)robot.y,3);
 	
-	private JButton observer = new JButton("Whatever.");
 	Color bg = new Color(100,100,200);
 	
 	@Override
 	public void onActivate() {
-		blockImage = ResourceBroker.loadImage("image/block.png");
 		robotRight = ResourceBroker.loadImage("image/robot_stand.png");
 		robotLeft = ResourceBroker.getFlipped(robotRight);
+		robotNorth = ResourceBroker.loadImage("image/robot_north.png");
+		robotSouth = ResourceBroker.loadImage("image/robot_south.png");
 		robot.im = robotRight;
 		
 		curRoom = RoomTemplates.constructFromTemplate(RoomTemplates.test1);
 		
-		/*
-		curRoom.clearTiles();
-		curRoom.addTile(blockImage);
-		curRoom.addTile(ResourceBroker.loadImage("image/floorTile.png"));
-		curRoom.addTile(ResourceBroker.loadImage("image/wallTile.png"));
-		
-		for(int y=0; y<Room.HEIGHT; y++) {
-			for (int x=0; x<Room.WIDTH; x++) {
-				if (x==0 || y==0 || x==Room.WIDTH-1 || y==Room.HEIGHT-1) {
-					curRoom.setBlock(x,y, BlockType.OPAQUE_WALL, 3);
-				} else {
-					curRoom.setBlock(x,y, BlockType.WALKABLE, 2);
-				}
-			}
-		}
-		curRoom.setBlock(21, 7, BlockType.OPAQUE_WALL, 3);
-		curRoom.setBlock(12, 10, BlockType.OPAQUE_WALL, 3);
-		curRoom.setBlock(13, 9, BlockType.OPAQUE_WALL, 3);
-		curRoom.setBlock(14, 8, BlockType.OPAQUE_WALL, 3);
-		*/
 		particles = ResourceBroker.diceImage(ResourceBroker.loadImage("image/particles.png"), 8, 8);
 		
-		//curRoom.addLight(new Light());
+		robotLight.radius = 8;
+		curRoom.addLight(robotLight);
+		mobs.add(robot);
 		
 		relight();
 		
@@ -96,50 +76,44 @@ public class FieldScreen implements Screen {
 		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 	}
 
+	private int lightStep = 0;
+	
 	@Override
 	public void onStep() {
 		if (Keyboard.isPressed("left")) {
 			robot.im = robotLeft;
-			//robot.x -= 1/16f;
+			robot.facing = Cardinal.WEST;
 			robot.nudgeLeft(curRoom);
-			
-			//if (Math.random()*1 < 1) {
-			//	spawnMobSmoke(robot,2);
-			//}
 		}
 		if (Keyboard.isPressed("right")) {
 			robot.im = robotRight;
+			robot.facing = Cardinal.EAST;
 			robot.nudgeRight(curRoom);
-			//robot.x += 1/16f;
-			
-			//if (Math.random()*1 < 1) {
-			//	spawnMobSmoke(robot,0);
-			//}
 		}
 		
 		if (Keyboard.isPressed("up")) {
-			robot.im = robotLeft;
-			//robot.y -= 1/16f;
+			robot.im = robotNorth;
+			robot.facing = Cardinal.NORTH;
 			robot.nudgeUp(curRoom);
-			
-			//if (Math.random()*1 < 1) {
-			//	spawnMobSmoke(robot,1);
-			//}
 		}
 		
 		if (Keyboard.isPressed("down")) {
-			robot.im = robotRight;
-			//robot.y += 1/16f;
+			robot.im = robotSouth;
+			robot.facing = Cardinal.SOUTH;
 			robot.nudgeDown(curRoom);
-			
-			//if (Math.random()*1 < 1) {
-			//	spawnMobSmoke(robot,1);
-			//}
 		}
 		
 		if (Keyboard.isPressed("action")) {
 			//Attack!
 			spawnMobSmoke(robot,1);
+		}
+		
+		lightStep--;
+		if (lightStep<=0) {
+			robotLight.x = robot.x;
+			robotLight.y = robot.y;
+			relight();
+			lightStep = 5;
 		}
 	}
 
@@ -189,10 +163,10 @@ public class FieldScreen implements Screen {
 		eachLight:
 		for(Light light : curRoom.lights()) {
 			int r = (int)Math.ceil(light.radius);
-			int x1 = light.x - r; if (x1<0) x1=0;
-			int y1 = light.y - r; if (y1<0) y1=0;
-			int x2 = light.x + r; if (x2>=Room.WIDTH) x2=Room.WIDTH-1;
-			int y2 = light.y + r; if (y2>=Room.HEIGHT) y2=Room.HEIGHT-1;
+			int x1 = (int)light.x - r; if (x1<0) x1=0;
+			int y1 = (int)light.y - r; if (y1<0) y1=0;
+			int x2 = (int)light.x + r; if (x2>=Room.WIDTH) x2=Room.WIDTH-1;
+			int y2 = (int)light.y + r; if (y2>=Room.HEIGHT) y2=Room.HEIGHT-1;
 			
 			for(int y=y1; y<=y2; y++) {
 				for(int x=x1; x<=x2; x++) {
@@ -211,11 +185,11 @@ public class FieldScreen implements Screen {
 		}
 	}
 	
-	public float checkRay(int x1, int y1, int x2, int y2) {
+	public float checkRay(float x1, float y1, float x2, float y2) {
 		//TODO: It may be desirable to remove the sqrts and just square the radius for the purposes of determining light falloff.
 		
-		int xdist = Math.abs(x2-x1);
-		int ydist = Math.abs(y2-y1);
+		int xdist = (int)Math.abs(x2-x1);
+		int ydist = (int)Math.abs(y2-y1);
 		float steps = Math.max(xdist, ydist);
 		
 		float xstep = (x2-x1) / steps;
@@ -227,10 +201,7 @@ public class FieldScreen implements Screen {
 		for(int i=0; i<steps; i++) {
 			BlockType btype = curRoom.getTile((int)x, (int)y);
 			if (btype==BlockType.OPAQUE_WALL) {
-				float finalXD = x-x1;
-				float finalYD = y-y1;
 				return Float.MAX_VALUE;
-				//return (float)Math.sqrt((finalXD*finalXD) + (finalYD*finalYD)); //squaring removes any negatives
 			}
 			
 			x += xstep;

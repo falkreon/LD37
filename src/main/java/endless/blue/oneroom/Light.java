@@ -1,8 +1,8 @@
 package endless.blue.oneroom;
 
 public class Light {
-	public int x;
-	public int y;
+	public float x;
+	public float y;
 	public float intensity;
 	public float radius;
 	
