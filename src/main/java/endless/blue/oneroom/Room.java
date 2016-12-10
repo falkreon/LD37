@@ -12,19 +12,21 @@ import javax.swing.JOptionPane;
  * #DealWithIt
  */
 public class Room {
+	public static final float PIXEL = 1/16f;
 	private static final BufferedImage EMPTY_TILE = new BufferedImage(16,16,BufferedImage.TYPE_INT_ARGB);
 	
 	public static final int WIDTH = 40;
 	public static final int HEIGHT = 22;
 	
-	private int[] tileIdentity = new int[WIDTH*HEIGHT];
+	private BlockType[] tileIdentity = new BlockType[WIDTH*HEIGHT];
 	private int[] tileImage = new int[WIDTH*HEIGHT];
 	
 	private final ArrayList<Image> tileset = new ArrayList<>();
 	
-	public int getTile(int x, int y) {
-		if (x<0 || x>=WIDTH || y<0 || y>=HEIGHT) return 0;
-		return tileIdentity[WIDTH*y + x];
+	public BlockType getTile(int x, int y) {
+		if (x<0 || x>=WIDTH || y<0 || y>=HEIGHT) return BlockType.OUTSIDE_OF_LEVEL;
+		BlockType result = tileIdentity[WIDTH*y + x];
+		return (result==null) ? BlockType.OUTSIDE_OF_LEVEL : result;
 	}
 	
 	public Image getTileImage(int x, int y) {
@@ -47,7 +49,9 @@ public class Room {
 		tileset.add(tile);
 	}
 	
-	public void setBlock(int id, int image) {
-		
+	public void setBlock(int x, int y, BlockType id, int image) {
+		if (x<0 || x>=WIDTH || y<0 || y>=HEIGHT) return;
+		tileIdentity[WIDTH*y+x] = id;
+		tileImage[WIDTH*y+x] = image;
 	}
 }

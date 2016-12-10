@@ -18,4 +18,15 @@ public class Mob {
 		
 		g.drawImage(im, left, top, Display.OBSERVER);
 	}
+	
+	public void nudgeLeft(Room r) {
+		if (this.x==(int)this.x) {
+			BlockType type = r.getTile((int)x-1, (int)y);
+			if (type==BlockType.WALKABLE) {
+				this.x -= Room.PIXEL;
+			}
+		} else {
+			this.x -= Room.PIXEL;
+		}
+	}
 }

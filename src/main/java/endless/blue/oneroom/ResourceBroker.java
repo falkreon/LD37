@@ -30,11 +30,11 @@ public class ResourceBroker {
 		return ret;
 	}
 	
-	public static Image[] diceImage(Image im, int tileWidth, int tileHeight) {
+	public static BufferedImage[] diceImage(Image im, int tileWidth, int tileHeight) {
 		int tilesWide = im.getWidth(observer)/tileWidth;
 		int tilesHigh = im.getHeight(observer)/tileHeight;
 		int curTileNum = 0;
-		Image[] result = new Image[tilesWide*tilesHigh];
+		BufferedImage[] result = new BufferedImage[tilesWide*tilesHigh];
 		for(int y=0; y<tilesHigh; y++) {
 			for(int x=0; x<tilesWide; x++) {
 				BufferedImage curTile = new BufferedImage(tileWidth,tileHeight,BufferedImage.TYPE_4BYTE_ABGR);
