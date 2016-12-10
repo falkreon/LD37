@@ -24,6 +24,8 @@ public class FieldScreen implements Screen {
 	private BufferedImage roomba;
 	private Clip roombaHurt;
 	
+	private BufferedImage orb;
+	
 	private BufferedImage healthpack;
 	private Clip healthpackCollect;
 	
@@ -50,6 +52,7 @@ public class FieldScreen implements Screen {
 		robotNorth = ResourceBroker.loadImage("image/robot_north.png");
 		robotSouth = ResourceBroker.loadImage("image/robot_south.png");
 		roomba = ResourceBroker.loadImage("image/roomba.png");
+		orb = ResourceBroker.loadImage("image/orb.png");
 		robot.im = robotRight;
 		
 		healthpack = ResourceBroker.loadImage("image/healthpack.png");
@@ -74,8 +77,8 @@ public class FieldScreen implements Screen {
 		relight();
 		
 		music = ResourceBroker.loadMusic("sound/3.mp3");
-		music.loop(Clip.LOOP_CONTINUOUSLY);
-		if (music!=null) music.start();
+		//music.loop(Clip.LOOP_CONTINUOUSLY);
+		//if (music!=null) music.start(); //TODO: RE-ENABLE THIS TO RESTART MUSIC BEFORE RELEASE
 		
 		robot.hurtSound = robotHurt;
 	}
@@ -194,7 +197,11 @@ public class FieldScreen implements Screen {
 		
 		if (mobs.size()<roomThreshold) {
 			if ((int)(Math.random()*300) == 0) {
-				mobs.add(new Enemy(roomba, roombaHurt));
+				if ((int)(Math.random()*5) == 0) {
+					mobs.add(new OrbEnemy(orb, roombaHurt));
+				} else {
+					mobs.add(new Enemy(roomba, roombaHurt));
+				}
 			}
 		}
 	}
