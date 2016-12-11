@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import javax.sound.sampled.Clip;
 
 public class Enemy extends Mob {
+	public int points = 10;
 	
 	public Enemy(BufferedImage sprite, Clip hurtSound) {
 		this.im = sprite;

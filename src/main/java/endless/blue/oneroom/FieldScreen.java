@@ -29,6 +29,11 @@ public class FieldScreen implements Screen {
 	private BufferedImage healthpack;
 	private Clip healthpackCollect;
 	
+	private BufferedImage letter;
+	private BufferedImage book;
+	private BufferedImage turnin;
+	private Clip fitness;
+	
 	private Room curRoom = new Room();
 	
 	private BufferedImage[] particles = null;
@@ -58,6 +63,14 @@ public class FieldScreen implements Screen {
 		healthpack = ResourceBroker.loadImage("image/healthpack.png");
 		healthpackCollect = ResourceBroker.loadSound("sound/collect_healthpack.wav");
 		
+		letter = ResourceBroker.loadImage("image/letter.png");
+		book   = ResourceBroker.loadImage("image/book.png");
+		turnin = ResourceBroker.loadImage("image/turnin.png");
+		fitness = ResourceBroker.loadSound("sound/fitness.wav");
+		
+		FitnessObjective goal = new FitnessObjective(letter,book,turnin,fitness);
+		Display.curObjective = goal;
+		mobs.add(goal);
 		
 		curRoom = RoomTemplates.constructFromTemplate(RoomTemplates.test1);
 		
@@ -77,7 +90,7 @@ public class FieldScreen implements Screen {
 		relight();
 		
 		music = ResourceBroker.loadMusic("sound/3.mp3");
-		//music.loop(Clip.LOOP_CONTINUOUSLY);
+		music.loop(Clip.LOOP_CONTINUOUSLY);
 		//if (music!=null) music.start(); //TODO: RE-ENABLE THIS TO RESTART MUSIC BEFORE RELEASE
 		
 		robot.hurtSound = robotHurt;
@@ -114,13 +127,26 @@ public class FieldScreen implements Screen {
 		g.fillRect(2, 2, (int)robot.health*2, 4);
 		
 		g.setColor(Color.WHITE);
-		g.drawString("Particles: "+Display.numParticles(), 43, 16);
+		//g.drawString("Particles: "+Display.numParticles(), 43, 10);
+		
+		g.drawString("Fitness:",80,10);
+		if (Display.scrambleScore<Display.score) {
+			g.setColor(Color.GREEN);
+		}
+		
+		g.drawString(""+Display.scrambleScore, 140, 10);
+		
+		g.setColor(Color.YELLOW);
+		g.drawString(Display.tip, 200, 10);
+		
 	}
 
 	private int lightStep = 0;
 	
 	@Override
 	public void onStep() {
+		
+		
 		if (robot.health()>0) {
 			if (Keyboard.isPressed("left")) {
 				robot.im = robotLeft;
@@ -158,6 +184,12 @@ public class FieldScreen implements Screen {
 			robotLight.y = robot.y;
 			relight();
 			lightStep = 5;
+			
+			if (Display.scrambleScore<Display.score) {
+				long scrambleSpeed = (Display.score-Display.scrambleScore) / 150L;
+				if (scrambleSpeed<1) scrambleSpeed = 1;
+				Display.scrambleScore+= scrambleSpeed;
+			}
 		}
 		
 		ArrayList<Mob> toRemove = new ArrayList<>();
@@ -166,6 +198,7 @@ public class FieldScreen implements Screen {
 			
 			if (m==robot) continue;
 			if (m.health()<=0) {
+				if (m instanceof Enemy) Display.score += ((Enemy)m).points;
 				for(int i=0; i<20; i++) {
 					m.facing = Cardinal.WEST;
 					spawnMobAttack(m,0,2,6.0f,20);
@@ -197,6 +230,13 @@ public class FieldScreen implements Screen {
 		
 		if (mobs.size()<roomThreshold) {
 			if ((int)(Math.random()*300) == 0) {
+				//NOTE: Letters only spawn when there's room in the level! You MUST kill SOME enemies!
+				if ((int)(Math.random()*5) == 0 && Display.curObjective==null) {
+					Display.curObjective = new FitnessObjective(letter, book, turnin, fitness);
+					mobs.add(Display.curObjective);
+					Display.tip = "Collect the envelope of unreadable Chinese symbols!";
+				}
+				
 				if ((int)(Math.random()*5) == 0) {
 					mobs.add(new OrbEnemy(orb, roombaHurt));
 				} else {

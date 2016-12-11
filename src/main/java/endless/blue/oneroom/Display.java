@@ -19,6 +19,11 @@ public class Display extends JFrame {
 	
 	private long lastRenderStart;
 	private static final long targetRenderTicks = 10L;
+
+	public static long score = 0L;
+	public static long scrambleScore = 0L;
+	public static FitnessObjective curObjective = null;
+	public static String tip = "Collect the envelope of unreadable Chinese symbols!";
 	
 	private static Particle[] particles = new Particle[900];
 	private static int maxParticle = 0; //Maximum particle index.

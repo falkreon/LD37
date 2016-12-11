@@ -10,6 +10,7 @@ public class OrbEnemy extends Enemy {
 	
 	public OrbEnemy(BufferedImage sprite, Clip hurtSound) {
 		super(sprite, hurtSound);
+		this.points = 25;
 	}
 
 	@Override
