@@ -4,7 +4,10 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 import javax.sound.sampled.AudioInputStream;
@@ -20,7 +23,10 @@ public class ResourceBroker {
 
 	public static BufferedImage loadImage(String imageName) {
 		try {
-			BufferedImage im = ImageIO.read(new File(imageName));
+			InputStream in = ResourceBroker.class.getClassLoader().getResourceAsStream(imageName);
+			if (in==null) System.out.println("Cannot get input stream for "+imageName);
+			BufferedImage im = ImageIO.read(in);
+			//BufferedImage im = ImageIO.read(new File(imageName)); //Old code
 			return im;
 		} catch (Exception ex) {
 			System.out.println("Cannot get file "+imageName);
@@ -33,9 +39,9 @@ public class ResourceBroker {
 
 		try {
 			Clip result = AudioSystem.getClip();
-			
-			AudioInputStream in = reader.getAudioInputStream(new File(imageName));
-			DecodedMpegAudioInputStream dec = new DecodedMpegAudioInputStream(result.getFormat(), in);
+			InputStream in = ResourceBroker.class.getClassLoader().getResourceAsStream(imageName);
+			AudioInputStream audio = reader.getAudioInputStream(in);
+			DecodedMpegAudioInputStream dec = new DecodedMpegAudioInputStream(result.getFormat(), audio);
 			result.open(dec);
 			return result;
 		} catch (Exception ex) {
@@ -47,9 +53,14 @@ public class ResourceBroker {
 	public static Clip loadSound(String soundName) {
 		try {
 			Clip result = AudioSystem.getClip();
-			
-			AudioInputStream in = AudioSystem.getAudioInputStream(new File(soundName));
-			result.open(in);
+			InputStream in = ResourceBroker.class.getClassLoader().getResourceAsStream(soundName);
+			ByteArrayOutputStream toBytes = new ByteArrayOutputStream();
+			int i;
+			while((i = in.read()) != -1) {
+				toBytes.write(i);
+			}
+			AudioInputStream audio = AudioSystem.getAudioInputStream(new ByteArrayInputStream(toBytes.toByteArray()));
+			result.open(audio);
 			
 			return result;
 		} catch (Exception ex) {

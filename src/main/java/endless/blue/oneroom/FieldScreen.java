@@ -230,11 +230,10 @@ public class FieldScreen implements Screen {
 				
 				ArrayList<Callable<Mob>> spawnTable = new ArrayList<>();
 				spawnTable.add(()->new Roomba());
-				//if (Display.score > 5000)
+				if (Display.score > 5000)
 					spawnTable.add(()->new OrbEnemy());
-				//if (Display.score > 10000)
+				if (Display.score > 10000)
 					spawnTable.add(()->new EliteRoomba());
-					//spawnTable.add(Enemies::createEliteRoomba);
 				
 				int spawnItem = (int)(Math.random()*spawnTable.size());
 				try {
