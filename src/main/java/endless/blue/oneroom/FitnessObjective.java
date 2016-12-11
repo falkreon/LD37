@@ -14,7 +14,7 @@ public class FitnessObjective extends Mob {
 		this.book = book;
 		this.turnin = turnin;
 		this.hurtSound = ding;
-		this.im = letter;
+		this.curFrame = letter;
 		this.x = 8;
 		this.y = Room.HEIGHT-2;
 	}
@@ -32,24 +32,24 @@ public class FitnessObjective extends Mob {
 		if (this.distanceSquaredTo(player)<1.5f && this.health > 0) {
 			
 			
-			if (this.im==letter) {
+			if (this.curFrame==letter) {
 				this.hurtSound.stop();
 				this.hurtSound.setFramePosition(0);
 				this.hurtSound.start();
 				
 				//BECOME BOOK!
-				this.im = book;
+				this.curFrame = book;
 				this.x = (int)(Math.random()*(Room.WIDTH-1))+0.5f;
 				this.y = (int)(Math.random()*(Room.HEIGHT-4))+0.5f;
 				Display.tip = "Collect the book to look up the response!";
 				
-			} else if (this.im==book) {
+			} else if (this.curFrame==book) {
 				this.hurtSound.stop();
 				this.hurtSound.setFramePosition(0);
 				this.hurtSound.start();
 				
 				//BECOME TURNIN!
-				this.im = turnin;
+				this.curFrame = turnin;
 				this.x = 21;
 				this.y = Room.HEIGHT-2;
 				Display.tip = "Go to the hatch to turn in your reply!";

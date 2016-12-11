@@ -14,19 +14,26 @@ public class Mob {
 	public float health = 20;
 	public int overkill = 0;
 	public int iframes = 0;
-	public BufferedImage im;
+	public SpriteSet curSprite;
+	public SpriteSet normalSprite;
+	public SpriteSet iframeSprite;
+	public BufferedImage curFrame;
 	public Cardinal facing = Cardinal.EAST;
 	
 	public Clip hurtSound = null;
 	public Clip attackSound = null;
 	
 	public void paint(Graphics2D g) {
-		if (im==null) return;
+		if (curSprite!=null) {
+			curFrame = curSprite.getFrame();
+		}
 		
-		int left = (int)(x*16) + 8 - (im.getWidth()/2);
-		int top = (int)(y*16) + 15 - im.getHeight();
+		if (curFrame==null) return;
 		
-		g.drawImage(im, left, top, Display.OBSERVER);
+		int left = (int)(x*16) + 8 - (curFrame.getWidth()/2);
+		int top = (int)(y*16) + 15 - curFrame.getHeight();
+		
+		g.drawImage(curFrame, left, top, Display.OBSERVER);
 	}
 	
 	public float distanceSquaredTo(Mob m) {

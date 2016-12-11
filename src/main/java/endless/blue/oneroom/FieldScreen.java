@@ -6,8 +6,14 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 import javax.sound.sampled.Clip;
+
+import endless.blue.oneroom.enemy.EliteRoomba;
+import endless.blue.oneroom.enemy.Enemy;
+import endless.blue.oneroom.enemy.OrbEnemy;
+import endless.blue.oneroom.enemy.Roomba;
 
 public class FieldScreen implements Screen {
 	
@@ -15,16 +21,7 @@ public class FieldScreen implements Screen {
 	
 	private BufferedImage lightMap = new BufferedImage(Room.WIDTH, Room.HEIGHT, BufferedImage.TYPE_INT_ARGB);
 	
-	private BufferedImage robotRight;
-	private BufferedImage robotLeft;
-	private BufferedImage robotNorth;
-	private BufferedImage robotSouth;
 	private Clip robotHurt;
-	
-	private BufferedImage roomba;
-	private Clip roombaHurt;
-	
-	private BufferedImage orb;
 	
 	private BufferedImage healthpack;
 	private Clip healthpackCollect;
@@ -40,25 +37,21 @@ public class FieldScreen implements Screen {
 	
 	private ArrayList<Mob> mobs = new ArrayList<>();
 	
-	private boolean asplode = false;
 	private int asplodeTimer = 0;
 	
 	private Mob robot = new Mob();
 	Light robotLight = new Light((int)robot.x,(int)robot.y,3);
 	
-	Color bg = new Color(100,100,200);
+	Color bg = Color.BLACK; //new Color(100,100,200);
 	
 	private int roomThreshold = 10;
 	
 	@Override
 	public void onActivate() {
-		robotRight = ResourceBroker.loadImage("image/robot_stand.png");
-		robotLeft = ResourceBroker.getFlipped(robotRight);
-		robotNorth = ResourceBroker.loadImage("image/robot_north.png");
-		robotSouth = ResourceBroker.loadImage("image/robot_south.png");
-		roomba = ResourceBroker.loadImage("image/roomba.png");
-		orb = ResourceBroker.loadImage("image/orb.png");
-		robot.im = robotRight;
+		BufferedImage[] robotFrames = ResourceBroker.diceImage(ResourceBroker.loadImage("image/robot.png"), 16, 23);
+		SpriteSet robotSprite = new SpriteSet(robotFrames);
+		
+		robot.curSprite = robotSprite;
 		
 		healthpack = ResourceBroker.loadImage("image/healthpack.png");
 		healthpackCollect = ResourceBroker.loadSound("sound/collect_healthpack.wav");
@@ -76,7 +69,7 @@ public class FieldScreen implements Screen {
 		
 		particles = ResourceBroker.diceImage(ResourceBroker.loadImage("image/particles.png"), 8, 8);
 		
-		roombaHurt = ResourceBroker.loadSound("sound/hurt_roomba.wav");
+		//roombaHurt = ResourceBroker.loadSound("sound/hurt_roomba.wav");
 		robotHurt = ResourceBroker.loadSound("sound/hurt_robot.wav");
 		robot.attackSound = ResourceBroker.loadSound("sound/attack_robot.wav");
 		
@@ -84,7 +77,7 @@ public class FieldScreen implements Screen {
 		curRoom.addLight(robotLight);
 		mobs.add(robot);
 		for(int i=0; i<4; i++) {
-			mobs.add(new Enemy(roomba, roombaHurt));
+			mobs.add(new Roomba());
 		}
 		
 		relight();
@@ -149,24 +142,28 @@ public class FieldScreen implements Screen {
 		
 		if (robot.health()>0) {
 			if (Keyboard.isPressed("left")) {
-				robot.im = robotLeft;
+				robot.curSprite.setFacing(Cardinal.WEST);
+				//robot.curFrame = robotLeft;
 				robot.facing = Cardinal.WEST;
 				robot.nudgeLeft(curRoom);
 			}
 			if (Keyboard.isPressed("right")) {
-				robot.im = robotRight;
+				robot.curSprite.setFacing(Cardinal.EAST);
+				//robot.curFrame = robotRight;
 				robot.facing = Cardinal.EAST;
 				robot.nudgeRight(curRoom);
 			}
 			
 			if (Keyboard.isPressed("up")) {
-				robot.im = robotNorth;
+				robot.curSprite.setFacing(Cardinal.NORTH);
+				//robot.curFrame = robotNorth;
 				robot.facing = Cardinal.NORTH;
 				robot.nudgeUp(curRoom);
 			}
 			
 			if (Keyboard.isPressed("down")) {
-				robot.im = robotSouth;
+				robot.curSprite.setFacing(Cardinal.SOUTH);
+				//robot.curFrame = robotSouth;
 				robot.facing = Cardinal.SOUTH;
 				robot.nudgeDown(curRoom);
 			}
@@ -186,7 +183,7 @@ public class FieldScreen implements Screen {
 			lightStep = 5;
 			
 			if (Display.scrambleScore<Display.score) {
-				long scrambleSpeed = (Display.score-Display.scrambleScore) / 150L;
+				long scrambleSpeed = (Display.score-Display.scrambleScore) / 32L;
 				if (scrambleSpeed<1) scrambleSpeed = 1;
 				Display.scrambleScore+= scrambleSpeed;
 			}
@@ -230,6 +227,21 @@ public class FieldScreen implements Screen {
 		
 		if (mobs.size()<roomThreshold) {
 			if ((int)(Math.random()*300) == 0) {
+				
+				ArrayList<Callable<Mob>> spawnTable = new ArrayList<>();
+				spawnTable.add(()->new Roomba());
+				//if (Display.score > 5000)
+					spawnTable.add(()->new OrbEnemy());
+				//if (Display.score > 10000)
+					spawnTable.add(()->new EliteRoomba());
+					//spawnTable.add(Enemies::createEliteRoomba);
+				
+				int spawnItem = (int)(Math.random()*spawnTable.size());
+				try {
+					Mob toSpawn = spawnTable.get(spawnItem).call();
+					mobs.add(toSpawn);
+				} catch (Exception ex) {}
+				
 				//NOTE: Letters only spawn when there's room in the level! You MUST kill SOME enemies!
 				if ((int)(Math.random()*5) == 0 && Display.curObjective==null) {
 					Display.curObjective = new FitnessObjective(letter, book, turnin, fitness);
@@ -237,11 +249,11 @@ public class FieldScreen implements Screen {
 					Display.tip = "Collect the envelope of unreadable Chinese symbols!";
 				}
 				
-				if ((int)(Math.random()*5) == 0) {
-					mobs.add(new OrbEnemy(orb, roombaHurt));
-				} else {
-					mobs.add(new Enemy(roomba, roombaHurt));
-				}
+				//if ((int)(Math.random()*5) == 0) {
+				//	mobs.add(Enemies.createRoomba());
+				//} else {
+				//	mobs.add(new Enemy(roomba, roombaHurt));
+				//}
 			}
 		}
 	}

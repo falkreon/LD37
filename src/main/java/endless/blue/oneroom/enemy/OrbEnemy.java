@@ -1,22 +1,29 @@
-package endless.blue.oneroom;
+package endless.blue.oneroom.enemy;
 
-import java.awt.image.BufferedImage;
-
-import javax.sound.sampled.Clip;
+import endless.blue.oneroom.Room;
 
 public class OrbEnemy extends Enemy {
 	public static final float TAU = (float)(2*Math.PI);
 	float theta = 0f;
+	float dtheta = 0.01f;
 	
-	public OrbEnemy(BufferedImage sprite, Clip hurtSound) {
-		super(sprite, hurtSound);
+	public OrbEnemy() {
+		super(Enemies.IMAGE_ORB_POSITIVE, Enemies.SOUND_ROOMBA_HURT);
+		dtheta = 0.01f;
+		
+		if (Math.random()<0.5f) {
+			curFrame = Enemies.IMAGE_ORB_NEGATIVE;
+			dtheta = -0.01f;
+		}
+		
 		this.points = 25;
 	}
 
 	@Override
 	public void wander(Room room) {
-		theta+= 0.01f;
+		theta+= dtheta;
 		if (theta>=TAU) theta-=TAU;
+		if (theta<0) theta+=TAU;
 		
 		int dx = (int)(Math.cos(theta)*2.0f);
 		int dy = (int)(Math.sin(theta)*-2.0f);

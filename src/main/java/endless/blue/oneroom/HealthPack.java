@@ -6,7 +6,7 @@ import javax.sound.sampled.Clip;
 
 public class HealthPack extends Mob {
 	public HealthPack(BufferedImage sprite, Clip hurtSound) {
-		this.im = sprite;
+		this.curFrame = sprite;
 		this.hurtSound = hurtSound;
 		this.x = (int)(Math.random()*Room.WIDTH);
 		this.y = (int)(Math.random()*Room.HEIGHT);

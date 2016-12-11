@@ -1,14 +1,18 @@
-package endless.blue.oneroom;
+package endless.blue.oneroom.enemy;
 
 import java.awt.image.BufferedImage;
 
 import javax.sound.sampled.Clip;
 
+import endless.blue.oneroom.Cardinal;
+import endless.blue.oneroom.Mob;
+import endless.blue.oneroom.Room;
+
 public class Enemy extends Mob {
 	public int points = 10;
 	
 	public Enemy(BufferedImage sprite, Clip hurtSound) {
-		this.im = sprite;
+		this.curFrame = sprite;
 		this.hurtSound = hurtSound;
 		this.x = (int)(Math.random()*Room.WIDTH);
 		this.y = (int)(Math.random()*Room.HEIGHT);
@@ -25,6 +29,7 @@ public class Enemy extends Mob {
 	public void wander(Room room) {
 		if (!nudgeForward(room)) {
 			this.facing = Cardinal.values()[(int)(Math.random()*4)];
+			if (curSprite!=null) curSprite.setFacing(this.facing);
 		}
 	}
 }
